@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentasi Active High Pass Filter</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
+
+      :root {
+        --bg-color: #0f172a;
+        --primary-color: #38bdf8; /* Soft Cyan */
+        --secondary-color: #818cf8; /* Soft Indigo */
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-color: #e2e8f0;
+        --card-bg: rgba(255, 255, 255, 0.03);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Latar Belakang */
+      .background-mesh {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: radial-gradient(
+          var(--glass-border) 1px,
+          transparent 1px
+        );
+        background-size: 30px 30px;
+        z-index: -1;
+        opacity: 0.5;
+      }
+
+      .glow {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(56, 189, 248, 0.15) 0%,
+          transparent 70%
+        );
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: -1;
+        filter: blur(50px);
+      }
+
+      /* Container Utama */
+      .slide-container {
+        width: 90%;
+        max-width: 1200px;
+        height: 85vh;
+        position: relative;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header */
+      .slide-header {
+        padding: 20px 40px;
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo-text {
+        font-weight: 700;
+        font-size: 1.2rem;
+        background: linear-gradient(
+          to right,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 0.8s ease-out forwards;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+
+      .header-subtext {
+        font-size: 0.9rem;
+        animation: fadeInDown 0.8s ease-out 0.2s forwards;
+      }
+
+      .fullscreen-btn {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--primary-color);
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .fullscreen-btn:hover {
+        background: rgba(56, 189, 248, 0.1);
+        border-color: var(--primary-color);
+      }
+
+      /* Slides Wrapper */
+      .slides-wrapper {
+        flex: 1;
+        position: relative;
+        width: 100%;
+      }
+
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 40px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(20px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      /* Typography */
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+      }
+      h2 {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+      }
+      p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+      }
+
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes zoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes letterFadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .cover-icon {
+        opacity: 0;
+        animation: zoomIn 0.8s ease-out 0.4s forwards;
+      }
+      .cover-title {
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out 0.6s forwards;
+      }
+      .cover-subtitle {
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out 0.8s forwards;
+      }
+      .cover-details {
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out 2.5s forwards;
+      }
+      .letter-animate span {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      /* Layouts */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        height: 100%;
+        align-items: center;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 25px;
+        height: 100%;
+        padding-top: 10px;
+      }
+
+      .content-card {
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        padding: 25px;
+        border-radius: 16px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: transform 0.3s ease;
+      }
+
+      .content-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      /* =========================================
+         FLIP CARD STYLES
+         ========================================= */
+      .flip-container {
+        perspective: 1000px;
+        height: 100%;
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .flip-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-style: preserve-3d;
+      }
+
+      .flip-container.flipped .flip-inner {
+        transform: rotateY(180deg);
+      }
+
+      .flip-front,
+      .flip-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .flip-front {
+        background: var(--card-bg);
+      }
+
+      .flip-back {
+        background: rgba(15, 17, 42, 0.98);
+        transform: rotateY(180deg);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        padding: 20px;
+      }
+
+      .flip-back p {
+        font-size: 0.95rem;
+        line-height: 1.4;
+        margin: 0;
+        color: #e2e8f0;
+      }
+      .flip-back h3 {
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+
+      .flip-hint {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.7rem;
+        color: var(--secondary-color);
+        background: rgba(0, 0, 0, 0.3);
+        padding: 4px 8px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        pointer-events: none;
+      }
+
+      .comp-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .flip-img-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .flip-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+      }
+
+      /* Placeholders */
+      .img-placeholder {
+        width: 100%;
+        height: 350px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid var(--glass-border);
+        color: var(--secondary-color);
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+      }
+
+      .img-placeholder:hover {
+        transform: scale(1.02);
+        border-color: var(--primary-color);
+        box-shadow: 0 15px 40px -10px rgba(56, 189, 248, 0.2);
+      }
+
+      .img-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 16px;
+      }
+
+      /* List & Tables */
+      ul {
+        list-style: none;
+      }
+      ul li {
+        margin-bottom: 12px;
+        padding-left: 20px;
+        position: relative;
+        text-align: left;
+      }
+      ul li::before {
+        content: "•";
+        color: var(--primary-color);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid var(--glass-border);
+      }
+      th {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      /* =========================================
+         PRESENTER NOTES (NEW FEATURE)
+         ========================================= */
+      .note-container {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .note-toggle {
+        background: rgba(56, 189, 248, 0.2);
+        color: #fff;
+        border: 1px solid var(--glass-border);
+        padding: 8px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        backdrop-filter: blur(5px);
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .note-toggle:hover,
+      .note-toggle.active {
+        background: var(--primary-color);
+        color: var(--bg-color);
+      }
+
+      .note-content {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid var(--primary-color);
+        border-radius: 12px;
+        padding: 15px;
+        width: 300px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, padding 0.4s ease;
+        margin-bottom: 10px;
+        opacity: 0;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      }
+
+      .note-content.show {
+        max-height: 400px;
+        opacity: 1;
+        padding: 15px;
+      }
+
+      .note-text {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #e2e8f0;
+        text-align: left;
+      }
+
+      .note-text strong {
+        color: var(--primary-color);
+      }
+
+      /* Math Specific Styles */
+      .math-step {
+        font-family: "Courier New", monospace;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+      }
+
+      /* Closing Animations */
+      .wavy-text {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .wavy-text span {
+        display: inline-block;
+        animation: wave 1.5s infinite;
+        animation-delay: calc(0.1s * var(--i));
+        font-size: 4rem;
+        font-weight: 700;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      }
+      @keyframes wave {
+        0%,
+        40%,
+        100% {
+          transform: translateY(0);
+          color: var(--text-color);
+        }
+        20% {
+          transform: translateY(-20px);
+          color: var(--primary-color);
+          text-shadow: 0 0 20px var(--primary-color);
+        }
+      }
+      .question-text {
+        position: absolute;
+        font-size: 1.2rem;
+        color: var(--secondary-color);
+        opacity: 0;
+        font-weight: 300;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        animation: blinkFloat 5s infinite;
+        backdrop-filter: blur(5px);
+      }
+      .qt-1 {
+        top: 20%;
+        left: 15%;
+        animation-delay: 0s;
+      }
+      .qt-2 {
+        top: 25%;
+        right: 15%;
+        animation-delay: 1.2s;
+      }
+      .qt-3 {
+        bottom: 25%;
+        left: 20%;
+        animation-delay: 2.4s;
+      }
+      .qt-4 {
+        bottom: 30%;
+        right: 20%;
+        animation-delay: 3.6s;
+      }
+      @keyframes blinkFloat {
+        0% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.9);
+        }
+        20% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        40% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        60% {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.9);
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      /* Controls */
+      .controls {
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--glass-border);
+      }
+      .dots {
+        display: flex;
+        gap: 8px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .dot.active {
+        background: var(--primary-color);
+        width: 30px;
+        border-radius: 5px;
+      }
+      .btn-nav {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: 600;
+      }
+      .btn-nav:hover {
+        background: var(--primary-color);
+        color: var(--bg-color);
+        border-color: var(--primary-color);
+      }
+
+      /* Highlights */
+      .highlight {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+      .highlight-secondary {
+        color: var(--secondary-color);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background Elements -->
+    <div class="background-mesh"></div>
+    <div class="glow"></div>
+
+    <div class="slide-container">
+      <!-- Header -->
+      <div class="slide-header">
+        <div class="logo-text">Active HPF Project</div>
+        <div class="header-actions">
+          <div class="header-subtext">Elektronika I</div>
+          <button
+            class="fullscreen-btn"
+            onclick="toggleFullScreen()"
+            title="Fullscreen Mode"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Slides Wrapper -->
+      <div class="slides-wrapper">
+        <!-- Slide 1: Judul -->
+        <div class="slide active" id="slide-0">
+          <div style="text-align: center; max-width: 800px; margin: 0 auto">
+            <div
+              class="cover-icon"
+              style="
+                font-size: 5rem;
+                margin-bottom: 20px;
+                color: var(--primary-color);
+              "
+            >
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+            </div>
+            <h1 class="cover-title">Rangkaian Active High Pass Filter</h1>
+            <p
+              class="cover-subtitle"
+              style="
+                font-size: 1.5rem;
+                color: var(--secondary-color);
+                font-weight: 700;
+              "
+            >
+              Simulasi & Analisis Menggunakan Proteus
+            </p>
+            <h3
+              class="letter-animate"
+              style="
+                color: var(--text-color);
+                margin: 20px 0 30px 0;
+                font-weight: 400;
+                font-size: 1.25rem;
+                min-height: 1.5em;
+              "
+            >
+              Yulita (2040125030)
+            </h3>
+          </div>
+        </div>
+
+        <!-- Slide 2: Definisi & Prinsip -->
+        <div class="slide" id="slide-1">
+          <div class="grid-2">
+            <div class="content-card">
+              <h2>Apa itu Active HPF?</h2>
+              <p>
+                Rangkaian filter elektronik yang
+                <strong>meloloskan sinyal frekuensi tinggi</strong> di atas
+                frekuensi cut-off (fc) dan meredam frekuensi rendah.
+              </p>
+              <p>
+                Menggunakan komponen <strong>Aktif (Op-Amp)</strong> untuk
+                memberikan penguatan dan menjaga stabilitas sinyal (impedansi
+                input tinggi, output rendah).
+              </p>
+            </div>
+            <div class="content-card">
+              <h2>Prinsip Kerja</h2>
+              <ul>
+                <li>Sinyal masuk melalui <strong>Kapasitor (C)</strong>.</li>
+                <li>
+                  Kapasitor memblokir arus DC dan frekuensi rendah (reaktansi
+                  tinggi).
+                </li>
+                <li>
+                  <strong>Op-Amp</strong> dalam konfigurasi Non-Inverting
+                  menyangga sinyal agar tidak terbebani.
+                </li>
+                <li>Jika frekuensi input > fc, sinyal diteruskan ke output.</li>
+              </ul>
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Jadi teman-teman, simpelnya Active HPF ini ibarat
+                <strong>'Satpam'</strong>. Dia cuma bolehin sinyal frekuensi
+                tinggi buat masuk, sedangkan yang rendah ditahan. Bedanya sama
+                filter biasa, kita pake
+                <strong>Op-Amp (Komponen Aktif)</strong> biar sinyalnya kuat dan
+                gak loyo pas nyampe output."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 3: Wiring & Flowchart -->
+        <div class="slide" id="slide-2">
+          <h2>Wiring & Alur Kerja</h2>
+          <div class="grid-2">
+            <!-- KARTU 1: WIRING -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <h3>Konfigurasi Rangkaian</h3>
+                  <p>
+                    Rangkaian disusun secara
+                    <strong>Non-Inverting</strong> dengan Op-Amp 741.
+                  </p>
+                  <ul style="margin-top: 15px">
+                    <li>
+                      <span class="highlight">Input:</span> Pin 3 (+) via C
+                    </li>
+                    <li>
+                      <span class="highlight">Resistor:</span> Pin 3 (+) ke GND
+                    </li>
+                    <li>
+                      <span class="highlight">Feedback:</span> Pin 2 (-) ke Pin
+                      6
+                    </li>
+                    <li>
+                      <span class="highlight">Power:</span> +12V (7) & -12V (4)
+                    </li>
+                  </ul>
+                  <div class="flip-hint">Klik untuk detail Pinout</div>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight">Detail Pinout IC 741</h3>
+                  <table>
+                    <tr>
+                      <th>Pin No.</th>
+                      <th>Fungsi</th>
+                      <th>Koneksi</th>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>Inverting (-)</td>
+                      <td>Output (Pin 6)</td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>Non-Inverting (+)</td>
+                      <td>Input & Resistor</td>
+                    </tr>
+                    <tr>
+                      <td>4</td>
+                      <td>VEE (-)</td>
+                      <td>-12 Volt</td>
+                    </tr>
+                    <tr>
+                      <td>6</td>
+                      <td>Output</td>
+                      <td>Probe / Osiloskop</td>
+                    </tr>
+                    <tr>
+                      <td>7</td>
+                      <td>VCC (+)</td>
+                      <td>+12 Volt</td>
+                    </tr>
+                  </table>
+                  <p
+                    style="font-size: 0.8rem; margin-top: 10px; color: #cbd5e1"
+                  >
+                    *Konfigurasi Unity Gain (Buffer).
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- KARTU 2: FLOWCHART -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <h3>Alur Kerja (Flowchart)</h3>
+                  <div class="flip-img-container">
+                    <img
+                      src="d:\JOKI MABA\PPT\Flowchart.png"
+                      alt="Flowchart Kerja"
+                      onerror="this.parentElement.innerHTML='<span style=\'color:red\'>[File Flowchart.png Tidak Ditemukan]</span>'"
+                    />
+                  </div>
+                  <div class="flip-hint">Klik untuk Penjelasan</div>
+                </div>
+                <div class="flip-back" style="text-align: left; padding: 30px">
+                  <h3 class="highlight">Penjelasan Langkah</h3>
+                  <ol
+                    style="
+                      margin-left: 20px;
+                      line-height: 1.6;
+                      font-size: 0.95rem;
+                      color: #e2e8f0;
+                    "
+                  >
+                    <li style="margin-bottom: 8px">
+                      <strong>Mulai:</strong> Persiapkan software Proteus.
+                    </li>
+                    <li style="margin-bottom: 8px">
+                      <strong>Pilih Komponen:</strong> Ambil Resistor,
+                      Kapasitor, Op-Amp 741, dan Generator Sinyal.
+                    </li>
+                    <li style="margin-bottom: 8px">
+                      <strong>Perakitan:</strong> Susun komponen sesuai skema
+                      High Pass Filter.
+                    </li>
+                    <li style="margin-bottom: 8px">
+                      <strong>Input Nilai:</strong> Set R=10k, C=1uF (Kondisi 1)
+                      atau 0.1uF (Kondisi 2).
+                    </li>
+                    <li>
+                      <strong>Simulasi:</strong> Jalankan dan catat hasil.
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Nah, untuk wiringnya, kita pasang kapasitor di depan kaki
+                positif Op-Amp.
+                <strong>Ingat ya, Rangkaian Non-Inverting.</strong> Kalo
+                kartunya dibalik (silakan klik), ada detail pin-nya. Pin 7 dapet
+                positif, Pin 4 dapet negatif. Alur kerjanya simpel: Siapkan
+                komponen, Rakit, Masukkan nilai R dan C, lalu jalankan simulasi
+                grafiknya."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 4: Komponen Proteus -->
+        <div class="slide" id="slide-3">
+          <h2>Komponen Simulasi Proteus</h2>
+          <div class="grid-3">
+            <!-- COMPONENT 1 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <rect x="4" y="4" width="16" height="16" rx="2" />
+                      <path d="M9 9h6m-6 6h6m-3-3v0" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight">Op-Amp 741</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight">Op-Amp 741</h3>
+                  <p>
+                    Komponen Aktif utama. Berfungsi sebagai penguat dan
+                    penyangga (buffer) sinyal dalam mode Non-Inverting.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- COMPONENT 2 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M2 12h2.5L7 4l5 16 5-16 2.5 8H22" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight">Sine Generator</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight">Sine Generator</h3>
+                  <p>
+                    Sumber sinyal input AC gelombang sinus. Diatur untuk menyapu
+                    (sweep) frekuensi.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- COMPONENT 3 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M3 3v18h18" />
+                      <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight">Freq. Response</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight">Frequency Graph</h3>
+                  <p>
+                    Fitur analisis Proteus. Menampilkan kurva Gain (dB) terhadap
+                    Frekuensi (Hz).
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- COMPONENT 4 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M2 12h2l2-4 4 8 4-8 4 8 2-4h2" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight-secondary">Resistor</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight-secondary">Resistor</h3>
+                  <p>
+                    <strong>Nilai Tetap: 10k Ohm</strong>. Penentu titik
+                    frekuensi cut-off.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- COMPONENT 5 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="22" y1="12" x2="16" y2="12" />
+                      <line x1="2" y1="12" x2="8" y2="12" />
+                      <line x1="8" y1="7" x2="8" y2="17" />
+                      <line x1="16" y1="7" x2="16" y2="17" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight-secondary">Kapasitor</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight-secondary">Kapasitor</h3>
+                  <p>
+                    <strong>Variabel Ubah:</strong> 1uF & 0.1uF. Berfungsi
+                    memblokir arus DC.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- COMPONENT 6 -->
+            <div
+              class="flip-container"
+              onclick="this.classList.toggle('flipped')"
+            >
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="comp-icon">
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v12" />
+                      <path d="M8 12h8" />
+                    </svg>
+                  </div>
+                  <h3 class="highlight-secondary">Voltage Probe</h3>
+                </div>
+                <div class="flip-back">
+                  <h3 class="highlight-secondary">Voltage Probe</h3>
+                  <p>
+                    Alat ukur virtual untuk mengirim data tegangan ke grafik.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Ini adalah amunisi kita di Proteus. Ada
+                <strong>Op-Amp 741</strong> sebagai otak rangkaian,
+                <strong>Sine Generator</strong> buat sumber suara/sinyalnya, dan
+                yang paling penting <strong>Frequency Graph</strong> buat liat
+                hasilnya nanti. Komponen pasifnya ada Resistor 10k dan Kapasitor
+                yang nanti bakal kita ubah-ubah nilainya."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 4 (BARU): Perhitungan Matematis -->
+        <div class="slide" id="slide-4">
+          <h2>Perhitungan Teoritis (Rumus)</h2>
+          <div class="grid-2">
+            <!-- Card Kondisi 1 -->
+            <div class="content-card">
+              <h3 class="highlight" style="margin-bottom: 10px">
+                Kondisi 1 (C = 1 μF)
+              </h3>
+              <div
+                style="
+                  background: rgba(0, 0, 0, 0.2);
+                  padding: 15px;
+                  border-radius: 12px;
+                  font-size: 0.9rem;
+                "
+              >
+                <p style="margin-bottom: 5px"><strong>Diketahui:</strong></p>
+                <ul style="font-family: monospace; color: var(--text-color)">
+                  <li>R = 10.000 Ω</li>
+                  <li>C = 1 μF = 0,000001 F</li>
+                </ul>
+                <hr style="border-color: var(--glass-border); margin: 10px 0" />
+                <p style="margin-bottom: 5px"><strong>Perhitungan:</strong></p>
+                <div class="math-step">fc = 1 / (2 × 3.14 × R × C)</div>
+                <div class="math-step">fc = 1 / (6,28 × 10.000 × 10⁻⁶)</div>
+                <div class="math-step">fc = 1 / 0,0628</div>
+                <h2 style="margin-top: 15px; text-align: right">
+                  fc ≈ 15,92 Hz
+                </h2>
+                <p style="text-align: right; font-size: 0.8rem; color: #aaa">
+                  (Dibulatkan 16 Hz)
+                </p>
+              </div>
+            </div>
+
+            <!-- Card Kondisi 2 -->
+            <div class="content-card">
+              <h3 class="highlight-secondary" style="margin-bottom: 10px">
+                Kondisi 2 (C = 0,1 μF)
+              </h3>
+              <div
+                style="
+                  background: rgba(0, 0, 0, 0.2);
+                  padding: 15px;
+                  border-radius: 12px;
+                  font-size: 0.9rem;
+                "
+              >
+                <p style="margin-bottom: 5px"><strong>Diketahui:</strong></p>
+                <ul style="font-family: monospace; color: var(--text-color)">
+                  <li>R = 10.000 Ω</li>
+                  <li>C = 0,1 μF = 0,0000001 F</li>
+                </ul>
+                <hr style="border-color: var(--glass-border); margin: 10px 0" />
+                <p style="margin-bottom: 5px"><strong>Perhitungan:</strong></p>
+                <div class="math-step">fc = 1 / (2 × 3.14 × R × C)</div>
+                <div class="math-step">fc = 1 / (6,28 × 10.000 × 10⁻⁷)</div>
+                <div class="math-step">fc = 1 / 0,00628</div>
+                <h2
+                  style="
+                    margin-top: 15px;
+                    text-align: right;
+                    color: var(--secondary-color);
+                  "
+                >
+                  fc ≈ 159,23 Hz
+                </h2>
+                <p style="text-align: right; font-size: 0.8rem; color: #aaa">
+                  (Hasil Teoritis)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Sebelum kita lihat grafiknya, mari kita hitung dulu secara
+                teori. Dengan Rumus <strong>fc = 1 dibagi 2-phi-R-C</strong>.
+                <br /><br />
+                <strong>Kondisi 1:</strong> Kapasitor besar (1 mikro), hasilnya
+                <strong>15,9 Hz</strong>. Nanti di grafik kita cek di angka 16
+                Hz. <br /><br />
+                <strong>Kondisi 2:</strong> Kapasitor diperkecil (0,1 mikro),
+                pembaginya makin kecil, jadi hasilnya makin besar yaitu
+                <strong>159,23 Hz</strong>. Ini membuktikan secara matematis
+                bahwa C yang kecil akan menaikkan frekuensi cut-off."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 5: Hasil Kondisi 1 (16 Hz) -->
+        <div class="slide" id="slide-5">
+          <div class="grid-2">
+            <div class="content-card">
+              <h2>Kondisi 1: Low Cut-Off</h2>
+              <div style="margin: 20px 0">
+                <p><span class="highlight">Resistor:</span> 10 kΩ</p>
+                <p>
+                  <span class="highlight">Kapasitor:</span>
+                  <strong>1 μF</strong> (Nilai Besar)
+                </p>
+                <p><span class="highlight">Target fc:</span> ~16 Hz</p>
+              </div>
+              <p>
+                <strong>Analisis:</strong><br />Kurva mulai naik (lolos) pada
+                frekuensi rendah (16 Hz). Grafik cenderung berada di atas lebih
+                cepat.
+              </p>
+            </div>
+            <div class="img-placeholder">
+              <img
+                src="d:\JOKI MABA\PPT\16 Heartz.png"
+                alt="Grafik 16 Hz"
+                onerror="this.parentElement.innerHTML='<span style=\'color:red\'>[File 16 Heartz.png Tidak Ditemukan]</span>'"
+              />
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Masuk ke percobaan pertama. Kita pake
+                <strong>Kapasitor Besar (1 Mikro)</strong>. Ibarat lubang
+                saringan yang gede, frekuensi rendah kayak 16Hz aja udah bisa
+                lewat. Liat grafiknya, kurvanya cepet naik di sebelah kiri
+                (frekuensi rendah)."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 6: Hasil Kondisi 2 (159 Hz) -->
+        <div class="slide" id="slide-6">
+          <div class="grid-2">
+            <div class="content-card">
+              <h2>Kondisi 2: High Cut-Off</h2>
+              <div style="margin: 20px 0">
+                <p><span class="highlight">Resistor:</span> 10 kΩ</p>
+                <p>
+                  <span class="highlight">Kapasitor:</span>
+                  <strong>0.1 μF</strong> (Nilai Kecil)
+                </p>
+                <p><span class="highlight">Target fc:</span> ~159 Hz</p>
+              </div>
+              <p>
+                <strong>Analisis:</strong><br />Kurva bergeser ke kanan.
+                Frekuensi di bawah 159 Hz diredam. Membutuhkan frekuensi lebih
+                tinggi untuk lolos.
+              </p>
+            </div>
+            <div class="img-placeholder">
+              <img
+                src="d:\JOKI MABA\PPT\159 Heartz.png"
+                alt="Grafik 159 Hz"
+                onerror="this.parentElement.innerHTML='<span style=\'color:red\'>[File 159 Heartz.png Tidak Ditemukan]</span>'"
+              />
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Percobaan kedua, kita
+                <strong>Kecilin Kapasitornya (0.1 Mikro)</strong>. Lubang
+                saringannya makin rapet. Sinyal 16Hz tadi udah gak bisa lewat
+                (blokir), baru mulai naik pas nyampe di <strong>159Hz</strong>.
+                Grafiknya keliatan geser ke kanan kan?"
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 7: Perbandingan & Kesimpulan -->
+        <div class="slide" id="slide-7">
+          <h2>Kesimpulan & Validasi</h2>
+          <div class="grid-2">
+            <div class="content-card">
+              <h3>Tabel Perbandingan</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Komp. C</th>
+                    <th>Teori (Rumus)</th>
+                    <th>Simulasi</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1 μF</td>
+                    <td>15.92 Hz</td>
+                    <td>~16 Hz</td>
+                    <td style="color: #4ade80">Valid</td>
+                  </tr>
+                  <tr>
+                    <td>0.1 μF</td>
+                    <td>159.23 Hz</td>
+                    <td>~159 Hz</td>
+                    <td style="color: #4ade80">Valid</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div
+              class="content-card"
+              style="background: rgba(56, 189, 248, 0.1)"
+            >
+              <h3>Poin Utama</h3>
+              <ul>
+                <li>
+                  Simulasi Proteus memiliki <strong>akurasi tinggi</strong> (<
+                  1% error).
+                </li>
+                <li>
+                  Nilai Kapasitor <strong>berbanding terbalik</strong> dengan
+                  Frekuensi Cut-off.
+                </li>
+                <li>
+                  <span class="highlight">C Kecil = fc Besar</span> (Grafik
+                  geser kanan).
+                </li>
+                <li>
+                  <span class="highlight">C Besar = fc Kecil</span> (Grafik
+                  geser kiri).
+                </li>
+              </ul>
+            </div>
+          </div>
+          <!-- PRESENTER NOTE -->
+          <div class="note-container">
+            <div class="note-content">
+              <div class="note-text">
+                "Jadi kesimpulannya:
+                <strong
+                  >Makin kecil kapasitor, makin tinggi frekuensi yang
+                  dipotong</strong
+                >
+                (berbanding terbalik). Data kita valid karena hasil itungan
+                rumus sama simulasi Proteus cuma beda dikit banget (kurang dari
+                1%)."
+              </div>
+            </div>
+            <button class="note-toggle" onclick="toggleNote(this)">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                ></path>
+              </svg>
+              Catatan Presenter
+            </button>
+          </div>
+        </div>
+
+        <!-- Slide 8: Penutup -->
+        <div class="slide" id="slide-8">
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100%;
+              flex-direction: column;
+              position: relative;
+            "
+          >
+            <h1 class="wavy-text">
+              <span style="--i: 1">T</span><span style="--i: 2">e</span
+              ><span style="--i: 3">r</span><span style="--i: 4">i</span
+              ><span style="--i: 5">m</span><span style="--i: 6">a</span>
+              <span style="--i: 7">&nbsp;</span>
+              <span style="--i: 8">K</span><span style="--i: 9">a</span
+              ><span style="--i: 10">s</span><span style="--i: 11">i</span
+              ><span style="--i: 12">h</span>
+            </h1>
+            <div class="question-text qt-1">Ada Pertanyaan?</div>
+            <div class="question-text qt-2">Ada Pertanyaan?</div>
+            <div class="question-text qt-3">Ada Pertanyaan?</div>
+            <div class="question-text qt-4">Ada Pertanyaan?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">&#8592; Back</button>
+        <div class="dots" id="dots-container"></div>
+        <button class="btn-nav" onclick="nextSlide()">Next &#8594;</button>
+      </div>
+    </div>
+
+    <script>
+      let currentSlide = 0;
+      const slides = document.querySelectorAll(".slide");
+      const dotsContainer = document.getElementById("dots-container");
+      const totalSlides = slides.length;
+
+      // Initialize Dots
+      slides.forEach((_, index) => {
+        const dot = document.createElement("div");
+        dot.classList.add("dot");
+        if (index === 0) dot.classList.add("active");
+        dot.onclick = () => goToSlide(index);
+        dotsContainer.appendChild(dot);
+      });
+
+      const dots = document.querySelectorAll(".dot");
+
+      function updateSlide() {
+        slides.forEach((slide, index) => {
+          slide.classList.remove("active");
+          dots[index].classList.remove("active");
+          if (index === currentSlide) {
+            slide.classList.add("active");
+            dots[index].classList.add("active");
+          }
+        });
+      }
+
+      function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+          currentSlide++;
+          updateSlide();
+        }
+      }
+
+      function prevSlide() {
+        if (currentSlide > 0) {
+          currentSlide--;
+          updateSlide();
+        }
+      }
+
+      function goToSlide(index) {
+        currentSlide = index;
+        updateSlide();
+      }
+
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch((err) => {
+            alert(
+              `Error attempting to enable full-screen mode: ${err.message} (${err.name})`
+            );
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      // Toggle Presenter Note
+      function toggleNote(btn) {
+        const content = btn.previousElementSibling;
+        content.classList.toggle("show");
+        btn.classList.toggle("active");
+      }
+
+      // Animate Name
+      document.addEventListener("DOMContentLoaded", () => {
+        const nameElements = document.querySelectorAll(".letter-animate");
+        nameElements.forEach((el) => {
+          const text = el.innerText;
+          el.innerHTML = "";
+          [...text].forEach((char, index) => {
+            const span = document.createElement("span");
+            span.innerText = char;
+            span.style.animation = `letterFadeIn 0.05s forwards ${
+              1.2 + index * 0.05
+            }s`;
+            el.appendChild(span);
+          });
+        });
+      });
+
+      // Keyboard Navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") nextSlide();
+        if (e.key === "ArrowLeft") prevSlide();
+      });
+    </script>
+  </body>
+</html>
